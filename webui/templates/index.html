@@ -199,8 +199,7 @@
             color: #4a5568;
             margin-bottom: 0;
             font-size: 1.5rem;
-            border-bottom: 2px solid #e2e8f0;
-            padding-bottom: 10px;
+            padding-bottom: 0;
         }
 
         .chart-header {
@@ -209,6 +208,8 @@
             justify-content: space-between;
             gap: 12px;
             margin-bottom: 20px;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 12px;
         }
 
         .chart-actions {
@@ -216,7 +217,7 @@
             gap: 8px;
             flex-wrap: wrap;
             justify-content: flex-end;
-            margin: 12px 0 16px;
+            margin: 0;
         }
 
         .chart-action-btn {
@@ -807,10 +808,13 @@
             </div>
 
             <div id="chart-container" class="chart-container">
-                <h2>📈 Prediction Results Chart</h2>
-                <div class="chart-actions">
-                    <button type="button" id="chart-wide-btn" class="chart-action-btn">Wide View</button>
-                    <button type="button" id="chart-reset-btn" class="chart-action-btn">Reset Zoom</button>
+                <div class="chart-header">
+                    <h2>📈 Prediction Results Chart</h2>
+                    <div class="chart-actions">
+                        <button type="button" id="chart-normal-btn" class="chart-action-btn">Normal View</button>
+                        <button type="button" id="chart-wide-btn" class="chart-action-btn">Wide View</button>
+                        <button type="button" id="chart-reset-btn" class="chart-action-btn">Reset Zoom</button>
+                    </div>
                 </div>
                 <div id="chart"></div>
 
@@ -1766,7 +1770,8 @@
             document.getElementById('lookback').addEventListener('input', updateSliderFromInputs);
             document.getElementById('pred-len').addEventListener('input', updateSliderFromInputs);
 
-            document.getElementById('chart-wide-btn').addEventListener('click', toggleWideChart);
+            document.getElementById('chart-normal-btn').addEventListener('click', setNormalChart);
+            document.getElementById('chart-wide-btn').addEventListener('click', setWideChart);
             document.getElementById('chart-reset-btn').addEventListener('click', resetChartZoom);
 
             const chartContainer = document.getElementById('chart-container');
@@ -1782,16 +1787,24 @@
             }
         }
 
-        function toggleWideChart() {
-            const container = document.getElementById('chart-container');
-            const button = document.getElementById('chart-wide-btn');
-            container.classList.toggle('expanded');
-            button.textContent = container.classList.contains('expanded') ? 'Normal View' : 'Wide View';
+        function resizeChartSoon() {
             setTimeout(() => {
                 try {
                     Plotly.Plots.resize('chart');
                 } catch (error) {}
             }, 100);
+        }
+
+        function setNormalChart() {
+            const container = document.getElementById('chart-container');
+            container.classList.remove('expanded');
+            resizeChartSoon();
+        }
+
+        function setWideChart() {
+            const container = document.getElementById('chart-container');
+            container.classList.add('expanded');
+            resizeChartSoon();
         }
 
         function resetChartZoom() {
