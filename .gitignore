@@ -70,6 +70,7 @@ webui/monster_server.*.log
 
 # Environment
 .env
+.venv-uv/
 .venv
 env/
 venv/

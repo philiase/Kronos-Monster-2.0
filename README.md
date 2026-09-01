@@ -113,6 +113,18 @@ The original Kronos code is licensed under the MIT License. The original copyrig
 
 Python 3.10 or newer is recommended.
 
+UV setup:
+
+```powershell
+python -m pip install uv
+uv venv .venv-uv --python 3.11
+.\.venv-uv\Scripts\python.exe -m pip install --upgrade pip
+.\.venv-uv\Scripts\python.exe -m pip install -r requirements.txt
+.\.venv-uv\Scripts\python.exe -m pip install -r webui\requirements.txt
+```
+
+Standard venv setup:
+
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\python.exe -m pip install --upgrade pip
@@ -123,8 +135,10 @@ python -m venv .venv
 For CPU-only machines, install the CPU PyTorch build if needed:
 
 ```powershell
-.\.venv\Scripts\python.exe -m pip install --force-reinstall torch==2.2.2+cpu --index-url https://download.pytorch.org/whl/cpu
+.\.venv-uv\Scripts\python.exe -m pip install --force-reinstall torch==2.2.2+cpu --index-url https://download.pytorch.org/whl/cpu
 ```
+
+The launcher checks for `.venv-uv` first, then `.venv`, then falls back to the system `python`.
 
 ## Running the Web UI
 
@@ -138,7 +152,7 @@ Manual run:
 
 ```powershell
 cd webui
-..\.venv\Scripts\python.exe serve.py
+..\.venv-uv\Scripts\python.exe serve.py
 ```
 
 Then open:
@@ -286,7 +300,7 @@ See `docs/TEST_RESULTS.md` for the full test log and interpretation.
 ## Testing
 
 ```powershell
-.\.venv\Scripts\python.exe -m pytest tests\test_signals.py tests\test_market_structure.py tests\test_scenarios.py -q
+.\.venv-uv\Scripts\python.exe -m pytest tests\test_signals.py tests\test_market_structure.py tests\test_scenarios.py -q
 ```
 
 ## Research Notes

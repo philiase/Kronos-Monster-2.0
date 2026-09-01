@@ -1,12 +1,22 @@
 @echo off
 setlocal
 
-cd /d "%~dp0webui"
+set "PROJECT_DIR=%~dp0"
+cd /d "%PROJECT_DIR%webui"
 
-set "LOCAL_VENV=%~dp0.venv\Scripts\python.exe"
+set "LOCAL_UV_VENV=%PROJECT_DIR%.venv-uv\Scripts\python.exe"
+set "LOCAL_VENV=%PROJECT_DIR%.venv\Scripts\python.exe"
+set "PARENT_UV_VENV=%PROJECT_DIR%..\.venv-uv\Scripts\python.exe"
+set "PARENT_VENV=%PROJECT_DIR%..\.venv\Scripts\python.exe"
 
-if exist "%LOCAL_VENV%" (
+if exist "%LOCAL_UV_VENV%" (
+    set "PYTHON_EXE=%LOCAL_UV_VENV%"
+) else if exist "%LOCAL_VENV%" (
     set "PYTHON_EXE=%LOCAL_VENV%"
+) else if exist "%PARENT_UV_VENV%" (
+    set "PYTHON_EXE=%PARENT_UV_VENV%"
+) else if exist "%PARENT_VENV%" (
+    set "PYTHON_EXE=%PARENT_VENV%"
 ) else (
     set "PYTHON_EXE=python"
 )
@@ -19,5 +29,5 @@ echo.
 "%PYTHON_EXE%" serve.py
 
 echo.
-echo Server stopped. If there was an error, send the message above to Chat.
+echo Server stopped. If there was an error, review the message above.
 pause
