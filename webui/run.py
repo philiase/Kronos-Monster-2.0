@@ -70,21 +70,21 @@ def main():
     
     # Set environment variables
     os.environ['FLASK_APP'] = 'app.py'
-    os.environ['FLASK_ENV'] = 'development'
+    os.environ['FLASK_ENV'] = 'production'
     
     # Start server
     try:
         from app import app
         print("✅ Web server started successfully!")
-        print(f"🌐 Access URL: http://localhost:7070")
+        print(f"🌐 Access URL: http://127.0.0.1:7070")
         print("💡 Tip: Press Ctrl+C to stop server")
         
         # Auto-open browser
         time.sleep(2)
-        webbrowser.open('http://localhost:7070')
+        webbrowser.open('http://127.0.0.1:7070')
         
         # Start Flask application
-        app.run(debug=True, host='0.0.0.0', port=7070)
+        app.run(debug=False, use_reloader=False, host='127.0.0.1', port=7070)
         
     except Exception as e:
         print(f"❌ Startup failed: {e}")
