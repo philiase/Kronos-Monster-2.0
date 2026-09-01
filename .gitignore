@@ -1,0 +1,93 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# PyCharm
+.idea/
+
+# VS Code
+.vscode/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Linux
+*~
+
+# Data files (large files)
+*.feather
+*.parquet
+*.h5
+*.hdf5
+data/*.csv
+finetune_csv/data/*.csv
+!data/README.md
+!data/.gitkeep
+!finetune_csv/data/README.md
+!finetune_csv/data/.gitkeep
+
+# Model files (large files)
+*.pth
+*.pt
+*.ckpt
+*.bin
+*.safetensors
+
+# Logs
+*.log
+logs/
+webui/server.*.log
+webui/monster_server.*.log
+
+# Environment
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Temporary files
+*.tmp
+*.temp
+temp/
+tmp/
+.python-version
+
+# Local research outputs
+outputs/
+webui/prediction_results/
+examples/yuce/
+finetune_csv/examples/
+KRONOS_PROJECT_NOTES.md
+KRONOS_MONSTER_2_NOTES.md
