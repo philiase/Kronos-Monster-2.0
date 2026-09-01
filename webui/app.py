@@ -393,13 +393,12 @@ def _price_axis_range(*frames, market_structure=None):
 
 def create_prediction_chart(historical_df, pred_df, actual_df=None, market_structure=None, scenario_forecasts=None):
     """Create prediction chart"""
-    show_volume = 'volume' in historical_df.columns and pd.to_numeric(historical_df['volume'], errors='coerce').fillna(0).abs().sum() > 0
     fig = make_subplots(
-        rows=2 if show_volume else 1,
+        rows=1,
         cols=1,
         shared_xaxes=True,
         vertical_spacing=0.04,
-        row_heights=[0.78, 0.22] if show_volume else [1.0],
+        row_heights=[1.0],
     )
     
     # Add historical data (candlestick chart)
@@ -452,111 +451,17 @@ def create_prediction_chart(historical_df, pred_df, actual_df=None, market_struc
             decreasing_line_color='#F44336'
         ), row=1, col=1)
 
-    if scenario_forecasts:
-        for scenario in scenario_forecasts:
-            if scenario.get('selected'):
-                continue
-            scenario_df = scenario.get('dataframe')
-            if scenario_df is None or len(scenario_df) == 0:
-                continue
-            if isinstance(scenario_df.index, pd.DatetimeIndex):
-                scenario_timestamps = scenario_df.index
-            elif 'timestamps' in scenario_df.columns:
-                scenario_timestamps = pd.to_datetime(scenario_df['timestamps'])
-            else:
-                scenario_timestamps = range(len(historical_df), len(historical_df) + len(scenario_df))
-            fig.add_trace(go.Scatter(
-                x=scenario_timestamps,
-                y=scenario_df['close'],
-                mode='lines',
-                line=dict(color='rgba(113, 128, 150, 0.35)', width=1, dash='dot'),
-                name=f"Alt Scenario {scenario['index'] + 1}",
-                hovertemplate=f"Alt Scenario {scenario['index'] + 1}<br>%{{x}}<br>Close %{{y}}<extra></extra>",
-            ), row=1, col=1)
-
-    if market_structure:
-        for level in market_structure.get('support_levels', []):
-            fig.add_hrect(
-                y0=level['lower'],
-                y1=level['upper'],
-                fillcolor='rgba(47, 133, 90, 0.14)',
-                line_width=0,
-                annotation_text=f"S {level['price']:.4f}",
-                annotation_position='left',
-                row=1,
-                col=1,
-            )
-        for level in market_structure.get('resistance_levels', []):
-            fig.add_hrect(
-                y0=level['lower'],
-                y1=level['upper'],
-                fillcolor='rgba(197, 48, 48, 0.14)',
-                line_width=0,
-                annotation_text=f"R {level['price']:.4f}",
-                annotation_position='left',
-                row=1,
-                col=1,
-            )
-        for level in market_structure.get('liquidity_levels', []):
-            color = '#805ad5' if level['kind'].startswith('buy') else '#2b6cb0'
-            dash = 'dot' if level.get('swept') else 'dash'
-            label = 'BSL' if level['kind'].startswith('buy') else 'SSL'
-            fig.add_hline(
-                y=level['price'],
-                line_color=color,
-                line_dash=dash,
-                line_width=1,
-                annotation_text=f"{label} {level['price']:.4f}",
-                annotation_position='right',
-                row=1,
-                col=1,
-            )
-        spike_times = []
-        spike_prices = []
-        spike_text = []
-        for spike in market_structure.get('volume_spikes', []):
-            if spike.get('timestamp') is None:
-                continue
-            spike_times.append(spike['timestamp'])
-            spike_prices.append(spike['price'])
-            spike_text.append(f"Volume spike: {spike['volume']}")
-        if spike_times:
-            fig.add_trace(go.Scatter(
-                x=spike_times,
-                y=spike_prices,
-                mode='markers',
-                marker=dict(symbol='diamond', size=9, color='#d69e2e'),
-                name='Volume Spikes',
-                text=spike_text,
-                hovertemplate='%{text}<br>%{x}<br>Price %{y}<extra></extra>',
-            ), row=1, col=1)
-
-    if show_volume:
-        volume_values = pd.to_numeric(historical_df['volume'], errors='coerce').fillna(0)
-        candle_up = historical_df['close'].astype(float) >= historical_df['open'].astype(float)
-        colors = np.where(candle_up, 'rgba(38, 166, 154, 0.45)', 'rgba(239, 83, 80, 0.45)')
-        fig.add_trace(go.Bar(
-            x=historical_df['timestamps'] if 'timestamps' in historical_df.columns else historical_df.index,
-            y=volume_values,
-            marker_color=colors,
-            name='Historical Volume',
-            hovertemplate='%{x}<br>Volume %{y}<extra></extra>',
-        ), row=2, col=1)
-    
     # Update layout
     fig.update_layout(
         title='Kronos Financial Prediction Results',
         xaxis_title='Time',
         yaxis_title='Price',
         template='plotly_white',
-        height=720 if show_volume else 620,
+        height=620,
         showlegend=True
     )
-    if show_volume:
-        fig.update_yaxes(title_text='Volume', row=2, col=1)
 
-    scenario_frames = [scenario.get('dataframe') for scenario in (scenario_forecasts or [])]
-    price_range = _price_axis_range(historical_df, pred_df, actual_df, *scenario_frames, market_structure=market_structure)
+    price_range = _price_axis_range(historical_df, pred_df, actual_df)
     if price_range:
         fig.update_yaxes(
             range=price_range,
@@ -576,16 +481,7 @@ def create_prediction_chart(historical_df, pred_df, actual_df=None, market_struc
             all_timestamps.extend(pred_timestamps)
         if 'actual_timestamps' in locals():
             all_timestamps.extend(actual_timestamps)
-        if scenario_forecasts:
-            for scenario in scenario_forecasts:
-                scenario_df = scenario.get('dataframe')
-                if scenario_df is None or len(scenario_df) == 0:
-                    continue
-                if isinstance(scenario_df.index, pd.DatetimeIndex):
-                    all_timestamps.extend(scenario_df.index)
-                elif 'timestamps' in scenario_df.columns:
-                    all_timestamps.extend(pd.to_datetime(scenario_df['timestamps']))
-        
+
         if all_timestamps:
             all_timestamps = sorted(all_timestamps)
             fig.update_xaxes(
