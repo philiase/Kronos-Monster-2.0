@@ -47,6 +47,13 @@ examples/
   forecast_and_signal.py CLI forecast plus signal report
   trade_signal_report.py Convert saved forecasts into signal summaries
 
+tools/
+  clean_market_csv.py    Broker/MetaTrader CSV cleaner
+
+docs/
+  TEST_RESULTS.md        Public test history and result summaries
+  results/               Compact CSV summaries from completed tests
+
 tests/
   test_signals.py
   test_market_structure.py
@@ -127,6 +134,14 @@ If only tick volume is available, it can be used as `volume`.
 
 Local datasets are ignored by Git by default. Add your own datasets locally when running experiments.
 
+To clean a broker or MetaTrader-style export:
+
+```powershell
+python tools\clean_market_csv.py data\US30Cash_M30_raw.csv data\US30CASH_M30_CLEAN.csv
+```
+
+The cleaner accepts tab-separated files with columns such as `<DATE>`, `<TIME>`, `<OPEN>`, `<HIGH>`, `<LOW>`, `<CLOSE>`, `<TICKVOL>`, `<VOL>`, and `<SPREAD>`. It writes the normalized Kronos Monster format and prints the row count, start date, end date, and dominant candle interval.
+
 ## Recommended CPU Settings
 
 For CPU-only testing:
@@ -172,6 +187,35 @@ Typical files:
 - `metadata.json`
 
 These outputs are ignored by Git.
+
+## Public Test Results
+
+The first documented tests were run on CPU using cleaned 30-minute data. The raw data files and full forecast bundles are not committed, but compact result summaries are included under `docs/results/`.
+
+Data ranges used:
+
+| Dataset | Rows | Date range | Interval |
+| --- | ---: | --- | --- |
+| `GOLD_M30_6MONTHS_CLEAN.csv` | 5,733 | 2025-11-03 01:00:00 to 2026-04-30 23:30:00 | 30 minutes |
+| `US30CASH_M30_6MONTHS_CLEAN.csv` | 5,732 | 2025-11-03 01:00:00 to 2026-04-30 23:30:00 | 30 minutes |
+| `US30CASH_M30_CLEAN.csv` | 1,909 | 2026-04-01 01:00:00 to 2026-05-28 23:30:00 | 30 minutes |
+| `US100CASH_M30_CLEAN.csv` | 1,909 | 2026-04-01 01:00:00 to 2026-05-28 23:30:00 | 30 minutes |
+| `USDCAD_M30_CLEAN.csv` | 2,017 | 2026-04-01 00:00:00 to 2026-05-29 00:00:00 | 30 minutes |
+| `USDJPY_M30_CLEAN.csv` | 2,017 | 2026-04-01 00:00:00 to 2026-05-29 00:00:00 | 30 minutes |
+
+Early result highlights:
+
+| Test | Model | Direction accuracy | Trade direction accuracy |
+| --- | --- | ---: | ---: |
+| US30 initial batch, horizon 16 | mini | 100.0% | No trades fired |
+| US30 initial batch, horizon 16 | small | 100.0% | Not isolated in summary |
+| US30 deeper batch, horizon 16 | mini | 75.0% | Not isolated in summary |
+| GOLD six-month, horizon 16 | small | 63.3% | 56.3% |
+| US30 six-month, horizon 16 | mini | 63.3% | 58.3% |
+| US30 six-month, horizon 16 | small | 63.3% | 90.0% over 10 trades |
+| GOLD six-month, horizon 8 | small | 53.3% | 80.0% over 10 trades |
+
+See `docs/TEST_RESULTS.md` for the full test log and interpretation.
 
 ## Testing
 
