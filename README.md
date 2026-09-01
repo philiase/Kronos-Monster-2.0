@@ -1,8 +1,23 @@
+<p align="center">
+  <img src="figures/logo.png" alt="Kronos" width="360">
+</p>
+
 # Kronos Monster 2.0
 
 Kronos Monster 2.0 is an experimental market-forecasting and trading-bias research tool built on top of the open-source Kronos financial candlestick foundation model.
 
-The project keeps Kronos as the forecast engine, then adds a practical decision layer around it:
+## Introduction
+
+Kronos is a family of decoder-only foundation models built for the language of financial markets: K-line and candlestick sequences. Instead of treating market candles as ordinary text or simple tabular rows, Kronos tokenizes OHLCV market data and uses an autoregressive Transformer to forecast future market sequences.
+
+At a high level, the original Kronos framework has two major parts:
+
+1. A specialized tokenizer converts continuous multi-dimensional K-line data into discrete tokens.
+2. A large autoregressive Transformer learns from those tokens and produces market forecasts that can be reused across quantitative research tasks.
+
+![Kronos framework overview](figures/overview.png)
+
+Kronos Monster 2.0 keeps Kronos as the forecast engine, then adds a practical decision layer around it:
 
 ```text
 Kronos candlestick forecast -> market structure -> liquidity and volume context -> scenario selection -> trade bias
@@ -12,20 +27,44 @@ The goal is not to treat any model as a perfect market predictor. The goal is to
 
 ## Features
 
-- Kronos mini, small, and base model support through Hugging Face.
-- Web UI for loading OHLCV data, running forecasts, and reviewing results.
-- Historical comparison mode for checking predictions against known future candles.
-- Latest forecast mode for projecting beyond the newest candle in the dataset.
-- Trade-bias signal layer: long, short, or hold.
-- Support and resistance zone detection from swing highs and lows.
-- Buy-side and sell-side liquidity level detection.
-- Volume state detection using tick volume or regular volume.
-- Volume spike markers on the chart.
-- Forecast candle repair for invalid generated OHLC candles.
-- Scenario selection engine that runs multiple forecast paths and chooses the path that best fits current market structure.
-- Saved evaluation bundles for every run.
-- Stretchable Plotly chart with pan, zoom, wide view, and reset zoom.
-- Display-only chart time offset to align broker/platform time.
+### Kronos Forecasting
+
+- Supports Kronos mini, small, and base models through Hugging Face.
+- Generates future OHLCV candlestick sequences from historical market context.
+- Handles preprocessing, normalization, prediction, and inverse normalization through the Kronos prediction pipeline.
+- Includes forecast candle repair for invalid generated OHLC candles.
+- Supports historical comparison mode and latest forecast mode.
+
+### Monster 2.0 Trading Layer
+
+- Converts raw candle forecasts into long, short, or hold trade-bias signals.
+- Detects support and resistance zones from swing highs and lows.
+- Detects buy-side and sell-side liquidity levels.
+- Reads volume state from tick volume or regular volume.
+- Marks volume spikes and volume participation on the chart.
+- Scores forecasts against market structure, liquidity behavior, candle realism, and volume context.
+
+### Scenario Selection
+
+- Runs multiple forecast paths without modifying Kronos internals.
+- Compares alternate paths against current market structure.
+- Selects the path that best fits the active market regime.
+- Saves alternate scenarios for later review.
+
+### Web UI and Workflow
+
+- Loads local OHLCV CSV files from the browser.
+- Shows historical candles, predicted candles, actual candles, support/resistance, liquidity, and volume.
+- Includes a stretchable Plotly chart with pan, zoom, wide view, and reset zoom.
+- Includes a display-only chart time offset to align broker/platform time.
+- Saves evaluation bundles for every run.
+
+### Research and Evaluation
+
+- Includes batch testing scripts for mini/small comparisons.
+- Includes compact public test summaries under `docs/results/`.
+- Includes a reusable broker/MetaTrader CSV cleaner.
+- Keeps private market data, local outputs, model weights, logs, and environments out of Git.
 
 ## Project Structure
 
@@ -107,6 +146,33 @@ Then open:
 ```text
 http://127.0.0.1:7070
 ```
+
+## Market Forecasting
+
+Kronos forecasting is handled through the `KronosPredictor` class. It prepares the market data, normalizes the input window, generates future candles, and converts the output back into normal price values.
+
+For ordinary experiments, the input window is controlled by `lookback` and the forecast horizon is controlled by `pred_len`:
+
+```python
+from model.kronos import Kronos, KronosTokenizer, KronosPredictor
+
+tokenizer = KronosTokenizer.from_pretrained("NeoQuasar/Kronos-Tokenizer-base")
+model = Kronos.from_pretrained("NeoQuasar/Kronos-small")
+predictor = KronosPredictor(model, tokenizer, device="cpu", max_context=512)
+
+forecast = predictor.predict(
+    df=x_df,
+    x_timestamp=x_timestamp,
+    y_timestamp=y_timestamp,
+    pred_len=16,
+    T=1.0,
+    top_k=1,
+    top_p=1.0,
+    sample_count=1,
+)
+```
+
+Important context note: `Kronos-small` and `Kronos-base` use a maximum context length of `512`. For best results, keep `lookback` within the selected model's context window. Monster 2.0 then takes the forecast candles and evaluates them through market structure, liquidity, volume, and trade-bias filters.
 
 ## Data Format
 
